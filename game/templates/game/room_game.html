@@ -1,0 +1,178 @@
+{% extends 'navbar.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .logger {
+
+
+    }
+    i:hover {
+        cursor: pointer;
+        color: blue;
+    }
+
+    /* width */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: purple;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+</style>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary live_modal" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="display:none">
+    Launch static backdrop modal
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel"></h5>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'home' %}" type="button" class="btn btn-primary">Ok</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="container-fluid m-0 p-0" style="min-height:100vh;">
+    <div class="row m-0 p-0" style="min-height:100vh">
+<!--        # First player section-->
+        {% if request.user == game_room.player1.user %}
+        <div class="col-6 bg-dark text-white p-0 m-0">
+            <div class="row m-0 p-0">
+                <div class="embed-responsive col-6 m-0 p-0" style="min-height:45vh;max-height:50vh;background-color:black">
+                    <img src="{{game_room.player1.image.url}}" alt="" class="embed-responsive-item img-fluid" style="object-fit: cover;min-height:45vh;max-height:50vh;width:100%">
+                </div>
+                <div class="col-6 m-0 p-0">
+                    <h4 class="text-capitalize p-1">{{request.user}}</h4>
+                    <div class="m-0 p-0" style="justify-content: center; align-items: center">
+                        <div class="progress m-0 p-0 mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated hp_{{request.user.username}}" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <p class="m-0 p-1">Lv {{game_room.player1.level}}</p>
+                    <div class="p-1 m-0 border rounded" style="min-height:20vh;">
+                        {% if request.user == game_room.turn.user %}
+                        <div class="{{request.user.username}} row p-0 m-0" style="align-items:center;justify-content:center">
+                            <i class="bi bi-caret-right-fill m-0 p-0 col-6" onclick="attack(this.id)"> Basic attack</i>
+                            <i class="bi bi-caret-right-fill m-0 p-0 col-6"> Block attack </i>
+                        </div>
+                        {% else %}
+                        <div class="{{request.user.username}} row p-0 m-0" style="align-items:center;justify-content:center">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif request.user == game_room.player2.user %}
+        <div class="col-6 bg-dark text-white p-0 m-0">
+            <div class="row m-0 p-0">
+                <div class="embed-responsive col-6 m-0 p-0" style="min-height:45vh;max-height:50vh;background-color:black">
+                    <img src="{{game_room.player2.image.url}}" alt="" class="embed-responsive-item img-fluid" style="object-fit: cover;min-height:45vh;max-height:50vh;width:100%">
+                </div>
+                <div class="col-6 m-0 p-0">
+                    <h4 class="text-capitalize p-1">{{request.user}}</h4>
+                    <div class="m-0 p-0" style="justify-content: center; align-items: center">
+                        <div class="progress m-0 p-0 mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated hp_{{request.user.username}}" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <p class="m-0 p-1">Lv {{game_room.player2.level}}</p>
+                    <div class="p-1 m-0 border rounded" style="min-height:20vh;">
+                        {% if request.user == game_room.turn.user %}
+                        <div class="{{request.user.username}} row p-0 m-0" style="align-items:center;justify-content:center">
+                            <i class="bi bi-caret-right-fill m-0 p-0 col-6" onclick="attack(this.id)"> Basic attack</i>
+                            <i class="bi bi-caret-right-fill m-0 p-0 col-6"> Block attack </i>
+                        </div>
+                        {% else %}
+                        <div class="{{request.user.username}} row p-0 m-0" style="align-items:center;justify-content:center">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!--Second player section-->
+        {% if request.user != game_room.player2.user %}
+        <div class="col-6 bg-dark text-white p-0 m-0">
+            <div class="row m-0 p-0">
+                <div class="embed-responsive col-6 m-0 p-0" style="min-height:45vh;max-height:50vh;background-color:black">
+                    <img src="{{game_room.player2.image.url}}" alt="" class="embed-responsive-item img-fluid" style="object-fit: cover;min-height:45vh;max-height:50vh;width:100%">
+                </div>
+                <div class="col-6 m-0 p-0">
+                    <h4 class="text-capitalize p-1">{{game_room.player2.user.username}}</h4>
+                    <div class="m-0 p-0" style="justify-content: center; align-items: center">
+                        <div class="progress m-0 p-0 mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated hp_{{game_room.player2.user.username}}" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <p class="m-0 p-1">Lv {{game_room.player2.level}}</p>
+                </div>
+            </div>
+        </div>
+        {% elif request.user != game_room.player1.user %}
+        <div class="col-6 bg-dark text-white p-0 m-0">
+            <div class="row m-0 p-0">
+                <div class="embed-responsive col-6 m-0 p-0" style="min-height:45vh;max-height:50vh;background-color:black">
+                    <img src="{{game_room.player1.image.url}}" alt="" class="embed-responsive-item img-fluid" style="object-fit: cover;min-height:45vh;max-height:50vh;width:100%">
+                </div>
+                <div class="col-6 m-0 p-0">
+                    <h4 class="text-capitalize p-1">{{game_room.player1.user.username}}</h4>
+                    <div class="m-0 p-0" style="justify-content: center; align-items: center">
+                        <div class="progress m-0 p-0 mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated hp_{{game_room.player1.user.username}}" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <p class="m-0 p-1">Lv {{game_room.player1.level}}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+<!--         Events log and chat log-->
+        <div class="col-6 p-0 m-0 logger" style="border-radius:0px;border:0px;">
+            <div class="p-0 m-0 card text-white" id="position" style="min-height:50vh; overflow-y: auto;scroll-behavior: smooth;background-color:black;border-radius:0px;border:0px;">
+                <div class="card-img-overlay p-0 m-0" id="chat-log" style="border-radius:0px;border:0px;">
+                </div>
+            </div>
+        </div>
+        <div class="col-6 p-0 m-0 logger" style="border-radius:0px;border:0px;">
+            <div class="p-0 m-0 card text-white" id="position" style="min-height:50vh; overflow-y: auto;scroll-behavior: smooth;background-color:lightblue;border-radius:0px;border:0px;">
+                <div class="card-img-overlay p-0 m-0" id="chat-log" style="border-radius:0px;border:0px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{ game_room.pk|json_script:"room_pk" }}
+{{ request.user.username|json_script:"username" }}
+<script src="{% static 'room.js' %}"></script>
+
+{% endblock content %}
