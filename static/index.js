@@ -8,7 +8,8 @@ chatSocket.onmessage = function(e) {
     console.log(loggedUser)
     const data = JSON.parse(e.data);
     if (data.sala_id){
-        const sala_id = data.sala_id
+        const sala_id = data.sala_id;
+        console.log(sala_id);
         if (data.users_list.includes(loggedUser)) {
             window.location.pathname = sala_id + '/';
         }

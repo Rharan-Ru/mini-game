@@ -1,6 +1,7 @@
 import json
 import random
 import time
+from datetime import datetime
 
 from django.contrib.auth.models import User
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -106,10 +107,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         # Otherwise, select a player to start the game
         else:
             selected = await database_sync_to_async(self.room_game.get_turn)()
-            if selected is False:
-                print("Selecionando User")
-                selected = await database_sync_to_async(self.room_game.first_turn)()
-            print(selected)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -125,23 +122,23 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
 
     # Disconnect from game, if player is disconnected lose the game
     async def disconnect(self, close_code):
-        # winner = ''
-        # loser = self.scope['user']
-        # if self.room_game.player1 != loser:
-        #     winner = self.room_game.player1.user.username
-        # elif self.room_game.player2 != loser:
-        #     winner = self.room_game.player2.user.username
-        #
-        # await self.channel_layer.group_send(
-        #     self.room_group_name,
-        #     {
-        #         'type': 'game_room',
-        #         'atk': '',
-        #         'selected': '',
-        #         'sair': 'True',
-        #         'winner': winner,
-        #     }
-        # )
+        winner = ''
+        loser = self.scope['user']
+        if self.room_game.player1 != loser:
+            winner = self.room_game.player1.user.username
+        elif self.room_game.player2 != loser:
+            winner = self.room_game.player2.user.username
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_room',
+                'atk': '',
+                'selected': '',
+                'sair': 'True',
+                'winner': winner,
+            }
+        )
 
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -178,12 +175,10 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     self.room_group_name,
                     self.channel_name
                 )
-
         # Send atack data to room
-        if 'atk' in text_data_json:
+        elif 'atk' in text_data_json:
             attacker = text_data_json['atk']
             dado = random.randint(10, 40)
-
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -191,21 +186,46 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     'atk': [attacker, dado],
                 }
             )
+        elif 'cont' in text_data_json:
+            print(text_data_json['cont'], text_data_json['turn'])
+            if text_data_json['cont'] == 0:
+                selected = ''
+                players = await self.get_name()
+                for player in players:
+                    if player != text_data_json['turn']:
+                        selected = player
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'game_room',
+                        'selected': selected,
+                    }
+                )
 
     # Receive data from room
     async def game_room(self, event):
-        print(event)
         # Return damage and next turn player (selected)
         if 'atk' in event and len(event['atk']) > 0:
+            # Get current time
+            now = datetime.now()
+            dt_string = now.strftime("%H:%M:%S")
+
             players = await self.get_name()
             selected = ''
             for player in players:
                 if player != event['atk'][0]:
                     selected = player
             dano = event['atk'][1]
+
+            log = f"[{dt_string}]: {event['atk'][0]} causou {dano} de dano"
+            # Save Log
+            await self.save_log(data=log)
+            # Change player hp and save turn
+            await self.sync_turn_and_hp(username=selected, dano=dano)
+
             await self.send(text_data=json.dumps({
                 'selected': selected,
-                'log': f'{event["atk"][0]} causou {dano} de dano',
+                'log': log,
                 'dano': dano,
             }))
 
@@ -213,6 +233,8 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         elif 'selected' in event and len(event['selected']) > 0:
             selected = event['selected']
             print(f'Turn: {selected}')
+            # Change player hp and save turn
+            await self.sync_turn_and_hp(username=selected, dano=0)
             await self.send(text_data=json.dumps({
                 'selected': selected,
             }))
@@ -221,16 +243,34 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         elif 'sair' in event and len(event['sair']) > 0:
             await self.send(text_data=json.dumps({
                 'sair': True,
-                'derrota': event['derrota'],
                 'winner': event['winner'],
             }))
 
-    # Functions to get data from database
     # Get players in the room
     @database_sync_to_async
     def get_name(self):
         sala = RoomGame.objects.get(pk=self.sala_pk)
         return [sala.player1.user.username, sala.player2.user.username]
+
+    @database_sync_to_async
+    def save_log(self, data):
+        log = json.loads(self.room_game.game_log)
+        log.insert(0, {"msg": data})
+        self.room_game.game_log = json.dumps(log)
+        self.room_game.save()
+        return self.room_game.game_log
+
+    @database_sync_to_async
+    def sync_turn_and_hp(self, username, dano):
+        user = User.objects.get(username=username)
+        if self.room_game.player1.user == user:
+            self.room_game.player1_hp -= dano
+            self.room_game.turn = self.room_game.player1
+            self.room_game.save()
+        else:
+            self.room_game.player2_hp -= dano
+            self.room_game.turn = self.room_game.player2
+            self.room_game.save()
 
     # Return/Save winner
     @database_sync_to_async

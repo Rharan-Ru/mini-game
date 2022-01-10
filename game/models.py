@@ -71,11 +71,22 @@ class RoomGame(models.Model):
     player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='player1')
     player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='player2')
 
+    player1_hp = models.IntegerField(default=100)
+    player2_hp = models.IntegerField(default=100)
+
     game_situation = models.CharField(max_length=2, choices=GAME_SITUATION, default=IN_GAME)
     turn = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='turn', null=True)
     winner = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='winner', blank=True, null=True)
 
     played_on = models.DateTimeField(default=timezone.now)
+    game_log = models.TextField(default='[]')
+
+    def save(self, *args, **kwargs):
+        if self.turn != self.player1 and self.turn != self.player2:
+            self.turn = random.choice([self.player1, self.player2])
+            print("Objeto Salvo")
+            print(f"Quem começa é: {self.turn.user.username}")
+        super(RoomGame, self).save(*args, **kwargs)
 
     def first_turn(self):
         player = random.choice([self.player1, self.player2])

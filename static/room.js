@@ -3,9 +3,11 @@ const username = JSON.parse(document.getElementById('username').textContent);
 
 var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
 var chatSocket = new WebSocket(ws_scheme + '://' + window.location.host + "/ws/game/" + roomPK + "/");
+var filas = [];
 
 chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
+    console.log(Object.keys(data));
     if (data.sair) {
         if (data.winner == username) {
             $('.modal-title').html('<p>Você Venceu!!</p>');
@@ -29,10 +31,10 @@ chatSocket.onmessage = function(e) {
     if (data.log) {
         const d = new Date();
         if (data.selected != username){
-            $('#chat-log').prepend('<p class="m-1 p-1" > [ '+ d.toLocaleTimeString() +' ] Você causou '+ data.dano +' de dano</p>');
+            $('#chat-log').prepend('<p class="m-1 p-1" >'+ data.log +'</p>');
         }
         else {
-            $('#chat-log').prepend('<p class="m-1 p-1" > [ '+ d.toLocaleTimeString() +' ] ' + data.log +'</p>');
+            $('#chat-log').prepend('<p class="m-1 p-1" >'+ data.log +'</p>');
         };
 
         var width_percent = $('.hp_'+data.selected).width() / $('.hp_'+data.selected).parent().width() * 100;
@@ -48,6 +50,22 @@ chatSocket.onmessage = function(e) {
         if (data.selected == username){
 //            $('.'+username).css({'display': 'flex'});
             $('.'+username).html('<i class="bi bi-caret-right-fill m-0 p-0 col-6" onclick="attack(this.id)"> Basic attack</i><i class="bi bi-caret-right-fill m-0 p-0 col-6"> Block attack </i>')
+            var myVar = setInterval(myTimer, 1000);
+            filas.push(myVar);
+            var i = 15
+            function myTimer() {
+                $('.contador').html(i);
+                console.log(i);
+                chatSocket.send(JSON.stringify({
+                    'cont': i,
+                    'turn': data.selected,
+                }));
+                if (i === 0) {
+                    filas.forEach(clearInterval);
+                };
+                i -= 1;
+            };
+            myTimer();
         }
         else {
 //            $('.'+username).css({'display': 'none'});
@@ -58,6 +76,7 @@ chatSocket.onmessage = function(e) {
 
 chatSocket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
+    filas.forEach(clearInterval);
 };
 
 
@@ -65,4 +84,5 @@ function attack(user) {
     chatSocket.send(JSON.stringify({
         'atk': username,
     }));
+    filas.forEach(clearInterval);
 }
