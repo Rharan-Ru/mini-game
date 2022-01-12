@@ -86,11 +86,11 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         self.sala_pk = self.scope['url_route']['kwargs']['room_pk']
         self.room_group_name = 'GameRoom_' + self.sala_pk
         self.room_game = await database_sync_to_async(RoomGame.objects.get)(pk=self.sala_pk)
-        self.situation = self.room_game.game_situation
         print('connected to game_room')
 
         # If it has a winner in the game, show the winner to game room
-        if self.situation == 'EG':
+        if self.room_game.game_situation == 'EG':
+            print("Jogo acabado")
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -98,11 +98,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     'sair': 'True',
                     'winner': await self.get_winner()
                 }
-            )
-
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
             )
         # Otherwise, select a player to start the game
         else:
@@ -114,36 +109,15 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     'selected': selected,
                 }
             )
-        await self.accept()
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name,
         )
+        await self.accept()
 
     # Disconnect from game, if player is disconnected lose the game
     async def disconnect(self, close_code):
-        winner = ''
-        loser = self.scope['user']
-        if self.room_game.player1 != loser:
-            winner = self.room_game.player1.user.username
-        elif self.room_game.player2 != loser:
-            winner = self.room_game.player2.user.username
-
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'game_room',
-                'atk': '',
-                'selected': '',
-                'sair': 'True',
-                'winner': winner,
-            }
-        )
-
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        pass
 
     # Receive data from WebSocket
     async def receive(self, text_data):
@@ -151,14 +125,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         # If player hp <= 0 end the game
         if 'hp' in text_data_json:
             if text_data_json['hp'][0] <= 0:
-                winner = ''
-                loser = text_data_json['hp'][1]
-                if self.room_game.player1.username != loser:
-                    winner = self.room_game.player1.username
-                elif self.room_game.player2.username != loser:
-                    winner = self.room_game.player2.username
-                await self.get_winner(player=winner)
-
+                winner = await self.end_game_return_winner(username=text_data_json['hp'][1])
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -166,7 +133,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                         'atk': '',
                         'selected': '',
                         'sair': 'True',
-                        'derrota': loser,
                         'winner': winner,
                     }
                 )
@@ -186,6 +152,30 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     'atk': [attacker, dado],
                 }
             )
+        elif 'saiu' in text_data_json:
+            room = await database_sync_to_async(RoomGame.objects.get)(pk=self.sala_pk)
+            if room.game_situation == 'IG':
+                winner = await self.end_game_return_winner(username=text_data_json['saiu'])
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'game_room',
+                        'sair': 'True',
+                        'winner': winner
+                    }
+                )
+                # print("ALGUEM SAIU " + text_data_json['saiu'])
+                # players = await self.get_name()
+                # loser = text_data_json['saiu']
+                # winner = ''
+                # for player in players:
+                #     if player != loser:
+                #         winner = player
+                # user = await database_sync_to_async(User.objects.get)(username=winner)
+                # winner = await database_sync_to_async(Player.objects.get)(user=user)
+                # room.winner = winner
+                # room.game_situation = 'EG'
+                # await database_sync_to_async(room.save)()
         elif 'cont' in text_data_json:
             print(text_data_json['cont'], text_data_json['turn'])
             if text_data_json['cont'] == 0:
@@ -246,11 +236,42 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                 'winner': event['winner'],
             }))
 
+    # End Game
+    @database_sync_to_async
+    def end_game_return_winner(self, username):
+        room = RoomGame.objects.get(pk=self.sala_pk)
+        loser_user = User.objects.get(username=username)
+        winner = ''
+        if room.player1.user != loser_user:
+            # save winner in room
+            winner = self.room_game.player1.user.username
+            room.winner = self.room_game.player1
+            room.save()
+            # Add xp to winner
+            player = Player.objects.get(user=self.room_game.player1.user)
+            player.add_xp()
+        else:
+            # save winner in room
+            winner = self.room_game.player2.user.username
+            room.winner = self.room_game.player2
+            room.save()
+            # Add xp to winner
+            player = Player.objects.get(user=self.room_game.player2.user)
+            player.add_xp()
+        room.game_situation = 'EG'
+        room.save()
+        return winner
+
     # Get players in the room
     @database_sync_to_async
     def get_name(self):
         sala = RoomGame.objects.get(pk=self.sala_pk)
         return [sala.player1.user.username, sala.player2.user.username]
+
+    @database_sync_to_async
+    def get_winner(self):
+        sala = RoomGame.objects.get(pk=self.sala_pk)
+        return sala.winner.user.username
 
     @database_sync_to_async
     def save_log(self, data):
@@ -271,21 +292,3 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             self.room_game.player2_hp -= dano
             self.room_game.turn = self.room_game.player2
             self.room_game.save()
-
-    # Return/Save winner
-    @database_sync_to_async
-    def get_winner(self, player=False):
-        sala = RoomGame.objects.get(pk=self.sala_pk)
-        if player:
-            user = User.objects.get(username=player)
-            player_winner = Player.objects.get(user=user)
-
-            sala.winner = player_winner
-
-            sala.save()
-            return player_winner.user.username
-
-        if sala.winner:
-            return sala.winner.user.username
-        else:
-            return False

@@ -28,7 +28,7 @@ class Player(models.Model):
         return partidas
 
     def add_xp(self):
-        xp = random.randint(50, 150)
+        xp = random.randint(100, 101)
         self.current_level_xp += xp
         self.save()
 

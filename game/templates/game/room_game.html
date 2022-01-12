@@ -35,7 +35,31 @@
     }
 
 </style>
-
+{% if game_room.game_situation == "EG" %}
+    <div class="modal" tabindex="-1" style="display: block">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+              {% if request.user == game_room.winner.user %}
+                <h5 class="modal-title">Você Venceu!!</h5>
+              {% else %}
+                <h5 class="modal-title">Você Perdeu!!</h5>
+              {% endif %}
+          </div>
+          <div class="modal-body">
+              {% if request.user == game_room.winner.user %}
+                <p>Parabens você ganhou!</p>
+              {% else %}
+                <p>Mais sorte da próxima vez!</p>
+              {% endif %}
+          </div>
+          <div class="modal-footer">
+            <a href="{% url 'home' %}" type="button" class="btn btn-primary">Ok</a>
+          </div>
+        </div>
+      </div>
+    </div>
+{% else %}
 <!-- Button trigger modal -->
 <button type="button" class="btn btn-primary live_modal" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="display:none">
     Launch static backdrop modal
@@ -58,7 +82,10 @@
     </div>
 </div>
 
+{% endif %}
+
 <section class="container-fluid m-0 p-0" style="min-height:100vh;">
+    <h1>{{game_room.game_situation}}</h1>
     <div class="row m-0 p-0" style="min-height:100vh">
 <!--        # First player section-->
         {% if request.user == game_room.player1.user %}
@@ -176,9 +203,9 @@
         </div>
     </div>
 </section>
-
 {{ game_room.pk|json_script:"room_pk" }}
 {{ request.user.username|json_script:"username" }}
 <script src="{% static 'room.js' %}"></script>
-
+<script>
+</script>
 {% endblock content %}

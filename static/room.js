@@ -7,18 +7,18 @@ var filas = [];
 
 chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
-    console.log(Object.keys(data));
     if (data.sair) {
+        $('.live_modal').click();
         if (data.winner == username) {
             $('.modal-title').html('<p>Você Venceu!!</p>');
             $('.modal-body').html('<p>Parabens você ganhou!</p>');
+            filas.forEach(clearInterval);
         }
         else {
             $('.modal-title').html('<p>Você Perdeu!!</p>');
             $('.modal-body').html('<p>Mais sorte da próxima vez!</p>');
+            filas.forEach(clearInterval);
         }
-
-        $('.live_modal').click();
     }
 
     if (data.selected != username){
@@ -79,6 +79,16 @@ chatSocket.onclose = function(e) {
     filas.forEach(clearInterval);
 };
 
+window.onbeforeunload = function() {
+        chatSocket.send(JSON.stringify({
+                'saiu': username,
+            }));
+        filas.forEach(clearInterval);
+        window.setTimeout(function () {
+            window.location = '/';
+        }, 0);
+        window.onbeforeunload = null; // necessary to prevent infinite loop, that kills your browser
+    }
 
 function attack(user) {
     chatSocket.send(JSON.stringify({
