@@ -85,8 +85,9 @@
 {% endif %}
 
 <section class="container-fluid m-0 p-0" style="min-height:100vh;">
-    <h1>{{game_room.game_situation}}</h1>
-    <div class="row m-0 p-0" style="min-height:100vh">
+    <h1 class="text-center">{{game_room.game_situation}}</h1>
+    <div class="row m-0 p-0" style="min-height:100vh;overflow: visible">
+        <h1 class="text-center text-white" style="position: absolute; top:50%;font-size: 50px;overflow:visible">Teste</h1>
 <!--        # First player section-->
         {% if request.user == game_room.player1.user %}
         <div class="col-6 bg-dark text-white p-0 m-0">

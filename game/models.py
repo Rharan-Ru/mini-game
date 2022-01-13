@@ -34,8 +34,9 @@ class Player(models.Model):
 
     def save(self, *args, **kwargs):
         while self.current_level_xp > self.next_level_xp:
+            self.current_level_xp = self.current_level_xp - self.next_level_xp
             self.level += 1
-            self.next_level_xp += self.next_level_xp * (self.level * 0.12)
+            self.next_level_xp += self.next_level_xp * (self.level * 0.9)
 
             if self.level < 20:
                 self.magic += 3

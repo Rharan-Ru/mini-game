@@ -7,9 +7,17 @@
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 {% block content %}
-
-<div class="container">
-  <h1>{% trans "Sign In" %}</h1>
+<style>
+  body {
+    background-image: url('https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/afaefd40343363.577bd5133b618.gif');
+    background-position: center;
+    background-size: cover;
+    background-blend-mode: multiply;
+    background-color: gray;
+  }
+</style>
+<div class="container text-white" style="height:100vh; display:flex; justify-content: center; flex-direction: column">
+  <h1>Login</h1>
 
   {% get_providers as socialaccount_providers %}
 
@@ -30,21 +38,19 @@
 
   {% include "socialaccount/snippets/login_extra.html" %}
 
-  {% else %}
-  <p>{% blocktrans %}If you have not created an account yet, then please
-  <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
   {% endif %}
+  <div>
+    <form class="login" method="POST" action="{% url 'account_login' %}" style="color: white;">
+      {% csrf_token %}
+      {{ form|crispy }}
+      {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+      {% endif %}
+      <button class="primaryAction btn btn-success" style="height:40px; width:150px" type="submit">{% trans "Sign In" %}</button>
+      <a class="button secondaryAction btn btn-dark" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+      <a class="button secondaryAction btn btn-secondary" href="{{ signup_url }}">sign up</a>
+    </form>
+  </div>
 </div>
 
-<div class="container">
-  <form class="login" method="POST" action="{% url 'account_login' %}">
-    {% csrf_token %}
-    {{ form|crispy }}
-    {% if redirect_field_value %}
-    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-    {% endif %}
-    <a class="button secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-    <button class="primaryAction btn btn-success" type="submit">{% trans "Sign In" %}</button>
-  </form>
-</div>
 {% endblock %}

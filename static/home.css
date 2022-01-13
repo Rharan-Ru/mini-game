@@ -1,0 +1,26 @@
+body {
+    background-image:url('https://opengameart.org/sites/default/files/battleback10.png');
+    background-size: cover;
+    background-blend-mode: multiply;
+    background-color: gray;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: purple;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
