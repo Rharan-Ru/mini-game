@@ -29,27 +29,25 @@ function sendUser(fila) {
         chatSocket.send(JSON.stringify({
             'user_id': loggedUser,
         }));
-
-        $('.contador').html('<h2 class="text-center m-0 p-2 text-white" ></h2>');
+        var i = 0
+        var myVar = setInterval(myTimer, 1000);
+        filas.push(myVar);
+        $('.contador').text(i);
         $('.exclude_fila').css({'visibility': 'visible'});
         $('.sender_fila').css({'visibility': 'hidden'});
 
-        var myVar = setInterval(myTimer, 1000);
-        filas.push(myVar);
-        var i = 1
         function myTimer() {
-            $('.contador').html('<h2 class="text-center m-0 p-2 text-white" >' + i + '</h2>');
             i += 1;
+            $('.contador').text(i);
             console.log(i);
         };
-
     }
     else {
         console.log('tudo certo');
         chatSocket.send(JSON.stringify({
             'sair_fila': loggedUser,
         }));
-        $('.contador').html('');
+        $('.contador').text('');
         $('.exclude_fila').css({'visibility': 'hidden'});
         $('.sender_fila').css({'visibility': 'visible'});
         filas.forEach(clearInterval);

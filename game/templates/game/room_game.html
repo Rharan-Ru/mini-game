@@ -85,9 +85,8 @@
 {% endif %}
 
 <section class="container-fluid m-0 p-0" style="min-height:100vh;">
-    <h1 class="text-center">{{game_room.game_situation}}</h1>
     <div class="row m-0 p-0" style="min-height:100vh;overflow: visible">
-        <h1 class="text-center text-white" style="position: absolute; top:50%;font-size: 50px;overflow:visible">Teste</h1>
+        <h1 class="contador text-center text-white" style="position: absolute; top:50%;font-size: 50px;overflow:visible"></h1>
 <!--        # First player section-->
         {% if request.user == game_room.player1.user %}
         <div class="col-6 bg-dark text-white p-0 m-0">
@@ -102,7 +101,7 @@
                             <div class="progress-bar progress-bar-striped progress-bar-animated hp_{{request.user.username}}" role="progressbar" style="width: {{game_room.player1_hp}}%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <p class="m-0 p-1 contador">Lv {{game_room.player1.level}}</p>
+                    <p class="m-0 p-1">Lv {{game_room.player1.level}}</p>
                     <div class="p-1 m-0 border rounded" style="min-height:20vh;">
                         {% if request.user == game_room.turn.user %}
                         <div class="{{request.user.username}} row p-0 m-0" style="align-items:center;justify-content:center">

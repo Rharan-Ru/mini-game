@@ -34,7 +34,7 @@ chatSocket.onmessage = function(e) {
 
         $('.hp_'+data.selected).css({'width': data.hp+'%'});
         chatSocket.send(JSON.stringify({
-            'hp': [width_now, data.selected],
+            'hp': [data.hp, data.selected],
         }));
     };
 

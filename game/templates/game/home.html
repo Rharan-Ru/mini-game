@@ -5,11 +5,11 @@
 <link rel="stylesheet" href="{% static 'home.css' %}">
 
 <section class="container-fluid">
-    <div class="row" style="min-height:35vh; background-color: #00000061">
-        <div class="col-3 embed-responsive p-0 mt-2" style="background-color:black; width:30vh; height:30vh; border-radius:50%; margin-left: 5vh">
+    <div class="row" style="height:50vh; background-color: #00000061">
+        <div class="col-md-3 embed-responsive p-0 mt-2" style="background-color:black; width:30vh; height:30vh; border-radius:50%; margin-left: 5vh">
             <img src="{{request.user.player.image.url}}" alt="" class="embed-responsive-item img-fluid" style="object-fit: cover; width:30vh; height:30vh; border-radius:50%" />
         </div>
-        <div class="col-9 p-0 mt-4 ms-2">
+        <div class="col-md-9 p-0 mt-4 ms-2">
             <div class="progress m-0 p-0" style="height: 25px">
                 <div class="progress-bar progress-bar-striped progress-bar-animated xp_{{request.user.username}} bg-warning" role="progressbar" style="width: {{current_xp}}%; height:25px" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
                     <h5 class="text-body" style="position: absolute">Experience: {{request.user.player.current_level_xp|floatformat:"0"}}/{{request.user.player.next_level_xp|floatformat:"0"}}</h5>
@@ -17,16 +17,37 @@
             </div>
             <h6 class="text-white p-0 mt-2">Class: Lv. 0{{request.user.player.level}} Barbarian ( Male brown )</h6>
             <div class="row text-white p-0 m-0">
-                <h6 class="col-2 m-0 p-0">MAG: </h6>
-                <h6 class="col-10 m-0 p-0">0{{request.user.player.magic}} + 0% </h6>
-                <h6 class="col-2 m-0 p-0">STR: </h6>
-                <h6 class="col-10 m-0 p-0">0{{request.user.player.strong}} + 0%</h6>
-                <h6 class="col-2 m-0 p-0">DEX: </h6>
-                <h6 class="col-10 m-0 p-0">0{{request.user.player.dex}} + 0%</h6>
-                <h6 class="col-2 m-0 p-0">LUC: </h6>
-                <h6 class="col-10 m-0 p-0">0{{request.user.player.luc}} + 0%</h6>
+                <div class="col-6 row">
+                    <h6 class="col-3 m-0 p-0">MAG: </h6>
+                    <h6 class="col-8 m-0 p-0">0{{request.user.player.magic}} + 0% </h6>
+                </div>
+                <div class="col-6 row">
+                    <h6 class="col-3 m-0 p-0">MAG: </h6>
+                    <h6 class="col-8 m-0 p-0">0{{request.user.player.magic}} + 0% </h6>
+                </div>
+                <div class="col-6 row">
+                    <h6 class="col-3 m-0 p-0">MAG: </h6>
+                    <h6 class="col-8 m-0 p-0">0{{request.user.player.magic}} + 0% </h6>
+                </div>
+                <div class="col-6 row">
+                    <h6 class="col-3 m-0 p-0">MAG: </h6>
+                    <h6 class="col-8 m-0 p-0">0{{request.user.player.magic}} + 0% </h6>
+                </div>
             </div>
         </div>
+    </div>
+    <div class="row" style="height:40vh">
+        <div class="col-4"></div>
+        <div class="col-4">
+            <div class="m-0 p-0 row">
+                <h2 class="contador text-center m-0 p-2 text-white text-center"></h2>
+                <button class="btn btn-danger exclude_fila" style="border-radius:0;visibility:hidden" onclick="sendUser(fila=false)">Sair Fila</button>
+            </div>
+            <div class="m-0 p-0">
+                <button class="btn btn-dark sender_fila" style="width:100%;border-radius:0" onclick="sendUser(fila=true)">Find Game</button>
+            </div>
+        </div>
+        <div class="col-4"></div>
     </div>
 </section>
 

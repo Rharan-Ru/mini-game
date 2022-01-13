@@ -127,7 +127,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         # If player hp <= 0 end the game
         if 'hp' in text_data_json:
-            if text_data_json['hp'][0] <= 0:
+            if int(text_data_json['hp'][0]) <= 0:
                 winner = await self.end_game_return_winner(username=text_data_json['hp'][1])
                 await self.channel_layer.group_send(
                     self.room_group_name,
